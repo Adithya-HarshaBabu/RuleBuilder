@@ -1,12 +1,24 @@
 import React from 'react';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import RuleRow from './RuleRow';
 import SortableItem from './SortableItem';
-import RuleGroup from './RuleGroup';
+import RuleRow from './RuleRow';
 import { v4 as uuid } from 'uuid';
 
-const RuleGroupComponent = ({ group, onChange, onDelete }) => {
-  const handleAddRule = () => {
+const RuleGroup = ({ group, onChange }) => {
+  const children = Array.isArray(group.children) ? group.children : [];
+
+  const updateChild = (index, updatedChild) => {
+    const newChildren = [...children];
+    newChildren[index] = updatedChild;
+    onChange({ ...group, children: newChildren });
+  };
+
+  const deleteChild = (index) => {
+    const newChildren = children.filter((_, i) => i !== index);
+    onChange({ ...group, children: newChildren });
+  };
+
+  const insertNewRuleAfter = (index) => {
     const newRule = {
       id: uuid(),
       type: 'rule',
@@ -15,63 +27,51 @@ const RuleGroupComponent = ({ group, onChange, onDelete }) => {
       value: '',
       logic: 'AND',
     };
-    onChange({ ...group, children: [...group.children, newRule] });
-  };
 
-  const handleAddGroup = () => {
-    const newGroup = {
-      id: uuid(),
-      type: 'group',
-      children: [],
-    };
-    onChange({ ...group, children: [...group.children, newGroup] });
-  };
+    const newChildren = [...children];
+    if (index === -1) {
+      newChildren.unshift(newRule);
+    } else {
+      newChildren.splice(index + 1, 0, newRule);
+    }
 
-  const updateChild = (index, updatedChild) => {
-    const newChildren = [...group.children];
-    newChildren[index] = updatedChild;
-    onChange({ ...group, children: newChildren });
-  };
-
-  const deleteChild = (index) => {
-    const newChildren = group.children.filter((_, i) => i !== index);
     onChange({ ...group, children: newChildren });
   };
 
   return (
     <div className="rule-group">
-      {onDelete && <div style={{ textAlign: 'right' }}><button onClick={onDelete}>🗑️</button></div>}
-
-      <SortableContext
-        items={group.children.map(child => child.id)}
-        strategy={verticalListSortingStrategy}
-      >
-        {group.children.map((child, index) => (
+      <SortableContext items={children.map(c => c.id)} strategy={verticalListSortingStrategy}>
+        {children.map((child, index) => (
           <SortableItem key={child.id} id={child.id}>
-            {child.type === 'rule' ? (
-              <RuleRow
-                rule={child}
-                onChange={(updated) => updateChild(index, updated)}
-                onDelete={() => deleteChild(index)}
-                showLogic={index !== 0}
-              />
-            ) : (
-              <RuleGroup
-                group={child}
-                onChange={(updated) => updateChild(index, updated)}
-                onDelete={() => deleteChild(index)}
-              />
-            )}
+            <RuleRow
+              rule={child}
+              onChange={(updated) => updateChild(index, updated)}
+              onDelete={() => deleteChild(index)}
+              onAddAfter={() => insertNewRuleAfter(index)}
+              showLogic={index < children.length - 1}
+            />
           </SortableItem>
         ))}
       </SortableContext>
 
-      <div className="group-actions">
-        <button onClick={handleAddRule}>+ Add Rule</button>
-        <button onClick={handleAddGroup}>+ Add Group</button>
-      </div>
+      {children.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '12px' }}>
+          <button
+            onClick={() => insertNewRuleAfter(-1)}
+            title="Add Rule"
+            style={{
+              fontSize: '20px',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer'
+            }}
+          >
+            ➕ Add Rule
+          </button>
+        </div>
+      )}
     </div>
   );
 };
 
-export default RuleGroupComponent;
+export default RuleGroup;

@@ -1,27 +1,18 @@
-export const buildExpression = (node) => {
-  if (!node || !node.children || node.children.length === 0) return '';
+export const buildExpression = (group) => {
+  if (!group || !Array.isArray(group.children)) return '';
 
-  const expressions = [];
-
-  for (let i = 0; i < node.children.length; i++) {
-    const child = node.children[i];
-
-    let expr = '';
-    if (child.type === 'rule') {
-      expr = `${child.field} ${child.operator} ${child.value}`;
-    } else if (child.type === 'group') {
-      expr = buildExpression(child);
-    }
-
-    if (expr) {
-      // prepend logic operator for all except the first expression
-      if (i > 0) {
-        const logic = child.logic || 'AND';
-        expressions.push(logic);
+  const expression = group.children
+    .map((child, i) => {
+      if (child.type === 'rule') {
+        const expr = `${child.field} ${child.operator} ${child.value}`;
+        const logic = child.logic && i < group.children.length - 1 ? ` ${child.logic} ` : '';
+        return expr + logic;
+      } else if (child.type === 'group') {
+        return `(${buildExpression(child)})`;
       }
-      expressions.push(expr);
-    }
-  }
+      return '';
+    })
+    .join('');
 
-  return expressions.length > 1 ? `(${expressions.join(' ')})`: expressions[0];
+  return `(${expression})`; // every group wrapped in brackets
 };

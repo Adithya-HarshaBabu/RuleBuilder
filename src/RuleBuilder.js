@@ -7,32 +7,29 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { buildExpression } from './ruleUtils';
 
 import RuleRow from './RuleRow';
 import BlockSection from './BlockSection';
 import { findNodeById, removeNodeById, insertNodeAtPath, findParentGroupId } from './treeUtils';
+import { buildExpression } from './ruleUtils';
 import { v4 as uuid } from 'uuid';
 
 const RuleBuilder = () => {
-  const [blocks, setBlocks] = useState({
-    includeGroups: [
-      {
-        id: 'include-1',
-        type: 'group',
-        logic: 'AND',
-        children: [],
-      },
-    ],
-    excludeGroups: [
-      {
-        id: 'exclude-1',
-        type: 'group',
-        logic: 'AND',
-        children: [],
-      },
-    ],
-  });
+  const [ruleBlocks, setRuleBlocks] = useState([
+    {
+      id: uuid(),
+      mode: 'include',
+      collapsed: false,
+      groups: [
+        {
+          id: uuid(),
+          type: 'group',
+          children: [],
+          logic: 'AND'
+        }
+      ]
+    }
+  ]);
 
   const [activeItem, setActiveItem] = useState(null);
 
@@ -42,11 +39,10 @@ const RuleBuilder = () => {
 
   const handleDragStart = (event) => {
     const { active } = event;
-    const allGroups = [...blocks.includeGroups, ...blocks.excludeGroups];
-    const draggedItem = allGroups
-      .map((g) => findNodeById(g, active.id))
+    const draggedItem = ruleBlocks
+      .flatMap(b => b.groups)
+      .map(g => findNodeById(g, active.id))
       .find(Boolean);
-
     setActiveItem(draggedItem);
   };
 
@@ -56,75 +52,108 @@ const RuleBuilder = () => {
       setActiveItem(null);
       return;
     }
-  
+
     const dragged = activeItem;
-    let newIncludeGroups = blocks.includeGroups.map(g => removeNodeById(g, active.id));
-    let newExcludeGroups = blocks.excludeGroups.map(g => removeNodeById(g, active.id));
-  
-    const allGroups = [...newIncludeGroups, ...newExcludeGroups];
-  
-    // Find drop target group (if over a rule, find its parent)
+    const updatedBlocks = ruleBlocks.map(b => ({
+      ...b,
+      groups: b.groups.map(g => removeNodeById(g, active.id))
+    }));
+
     let dropGroupId = null;
-    for (let group of allGroups) {
-      const target = findNodeById(group, over.id);
-      if (target?.type === 'group') {
-        dropGroupId = target.id;
-        break;
-      } else if (target?.type === 'rule') {
-        // find its parent group
-        dropGroupId = findParentGroupId(group, over.id);
-        break;
+    for (let block of updatedBlocks) {
+      for (let group of block.groups) {
+        const target = findNodeById(group, over.id);
+        if (target?.type === 'group') {
+          dropGroupId = target.id;
+          break;
+        } else if (target?.type === 'rule') {
+          dropGroupId = findParentGroupId(group, over.id);
+          break;
+        }
       }
     }
-  
-    if (!dropGroupId) {
-      setActiveItem(null);
-      return;
-    }
-  
-    newIncludeGroups = newIncludeGroups.map(g =>
-      insertNodeAtPath(g, dropGroupId, dragged)
-    );
-    newExcludeGroups = newExcludeGroups.map(g =>
-      insertNodeAtPath(g, dropGroupId, dragged)
-    );
-  
-    setBlocks({
-      includeGroups: newIncludeGroups,
-      excludeGroups: newExcludeGroups,
-    });
-  
+
+    const finalBlocks = updatedBlocks.map(b => ({
+      ...b,
+      groups: b.groups.map(g =>
+        g.id === dropGroupId ? insertNodeAtPath(g, dropGroupId, dragged) : g
+      )
+    }));
+
+    setRuleBlocks(finalBlocks);
     setActiveItem(null);
   };
 
-  const addGroup = (section) => {
-    const id = `${section}-${uuid()}`;
-    const newGroup = {
-      id,
-      type: 'group',
-      logic: 'AND',
-      children: [],
+  const updateBlockGroups = (blockId, updater) => {
+    setRuleBlocks(prev =>
+      prev.map(b => {
+        if (b.id !== blockId) return b;
+        return { ...b, groups: updater(b.groups) };
+      })
+    );
+  };
+
+  const updateBlockMode = (blockId, newMode) => {
+    setRuleBlocks(prev =>
+      prev.map(b => b.id === blockId ? { ...b, mode: newMode } : b)
+    );
+  };
+
+  const removeBlock = (blockId) => {
+    setRuleBlocks(prev => prev.filter(b => b.id !== blockId));
+  };
+
+  const toggleCollapse = (blockId) => {
+    setRuleBlocks(prev =>
+      prev.map(b => b.id === blockId ? { ...b, collapsed: !b.collapsed } : b)
+    );
+  };
+
+  const addBlock = (afterIndex = null) => {
+    const newBlock = {
+      id: uuid(),
+      mode: 'include',
+      collapsed: false,
+      groups: [
+        {
+          id: uuid(),
+          type: 'group',
+          children: [],
+          logic: 'AND'
+        }
+      ]
     };
-    setBlocks((prev) => ({
-      ...prev,
-      [`${section}Groups`]: [...prev[`${section}Groups`], newGroup],
-    }));
+
+    setRuleBlocks(prev => {
+      const updated = [...prev];
+      if (afterIndex === null || afterIndex >= updated.length) {
+        updated.push(newBlock);
+      } else {
+        updated.splice(afterIndex + 1, 0, newBlock);
+      }
+      return updated;
+    });
   };
 
-  const updateGroup = (id, section, updatedGroup) => {
-    const listKey = `${section}Groups`;
-    setBlocks((prev) => ({
-      ...prev,
-      [listKey]: prev[listKey].map((g) => (g.id === id ? updatedGroup : g)),
-    }));
-  };
+  const getFormattedExpression = () => {
+    const blockExpressions = ruleBlocks.map((block) => {
+      const groupExpressions = block.groups
+        .map((group, i) => {
+          const expr = buildExpression(group);
+          if (!expr) return null;
+          const logic = group.logic && i < block.groups.length - 1 ? ` ${group.logic} ` : '';
+          return expr + logic;
+        })
+        .filter(Boolean)
+        .join('');
 
-  const removeGroup = (id, section) => {
-    const listKey = `${section}Groups`;
-    setBlocks((prev) => ({
-      ...prev,
-      [listKey]: prev[listKey].filter((g) => g.id !== id),
-    }));
+      if (!groupExpressions) return '';
+      const wrapped = `(${groupExpressions})`;
+
+      return block.mode === 'exclude' ? `!${wrapped}`: wrapped;
+    }).filter(Boolean);
+
+    return blockExpressions.join(' AND ') || 'No rules defined';
   };
 
   return (
@@ -136,57 +165,71 @@ const RuleBuilder = () => {
         onDragEnd={handleDragEnd}
         onDragCancel={() => setActiveItem(null)}
       >
-        <div style={{ display: 'flex', gap: '12px', flexDirection: 'column' }}>
-          
-            <h3>Includes</h3>
-            {blocks.includeGroups.map((group, i) => (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '95%', maxWidth: '1100px' }}>
+            {ruleBlocks.map((block, i) => (
               <BlockSection
-                key={group.id}
-                title={`Includes ${i + 1}`}
-                color="blue"
-                group={group}
-                onChange={(g) => updateGroup(group.id, 'include', g)}
-                onDelete={() => removeGroup(group.id, 'include')}
-                onAdd = {() => addGroup('include')}
-              />
-            ))}
-
-          
-
-          
-            <h3>Excludes</h3>
-            {blocks.excludeGroups.map((group, i) => (
-              <BlockSection
-                key={group.id}
-                title={`Excludes ${i + 1}`}
-                color="red"
-                group={group}
-                onChange={(g) => updateGroup(group.id, 'exclude', g)}
-                onDelete={() => removeGroup(group.id, 'exclude')}
-                onAdd = {() => addGroup('exclude')}
-
+                key={block.id}
+                title={`${block.mode === 'include' ? 'Includes' : 'Excludes'} ${i + 1}`}
+                color={block.mode === 'include' ? 'blue' : 'red'}
+                groups={block.groups}
+                collapsed={block.collapsed}
+                onToggleCollapse={() => toggleCollapse(block.id)}
+                onGroupChange={(groupIndex, newGroup) => {
+                  updateBlockGroups(block.id, (groups) => {
+                    const updated = [...groups];
+                    updated[groupIndex] = newGroup;
+                    return updated;
+                  });
+                }}
+                onLogicChange={(groupIndex, logic) => {
+                  updateBlockGroups(block.id, (groups) => {
+                    const updated = [...groups];
+                    updated[groupIndex].logic = logic;
+                    return updated;
+                  });
+                }}
+                onAddGroup={() => {
+                  updateBlockGroups(block.id, (groups) => [
+                    ...groups,
+                    { id: uuid(), type: 'group', children: [], logic: 'AND' }
+                  ]);
+                }}
+                onDeleteGroup={(groupIndex) => {
+                  updateBlockGroups(block.id, (groups) =>
+                    groups.filter((_, i) => i !== groupIndex)
+                  );
+                }}
+                onDelete={() => removeBlock(block.id)}
+                onModeChange={(mode) => updateBlockMode(block.id, mode)}
+                onAddBlock={() => addBlock(i)}
               />
             ))}
           </div>
-        
+
+          {/* Final read-only expression */}
+          <div style={{ width: '95%', maxWidth: '1100px', marginTop: '32px' }}>
+            <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Rule Expression</div>
+            <div style={{
+              background: '#f9f9f9',
+              border: '1px solid #ccc',
+              borderRadius: '6px',
+              padding: '12px',
+              fontSize: '14px',
+              color: '#333',
+              fontFamily: 'monospace',
+              whiteSpace: 'pre-wrap',
+              textAlign: 'left'
+            }}>
+              {getFormattedExpression()}
+            </div>
+          </div>
+        </div>
 
         <DragOverlay>
           {activeItem?.type === 'rule' && <RuleRow rule={activeItem} readOnly />}
           {activeItem?.type === 'group' && <div className="rule-group ghost">Group</div>}
         </DragOverlay>
-        <div style={{ marginTop: '40px' }}>
-          <div style={{width: '90%',maxWidth: '720px'}}>
-  <h4>Final Rule Expression:</h4>
-  <div className="rule-expression-preview">
-    <pre>
-      {[
-        ...blocks.includeGroups.map(buildExpression).filter(Boolean).map(e => `(INCLUDE: ${e})`),
-        ...blocks.excludeGroups.map(buildExpression).filter(Boolean).map(e => `(EXCLUDE: ${e})`)
-      ].join('\nAND\n') || 'No rules defined'}
-    </pre>
-  </div>
-  </div>
-</div>
       </DndContext>
     </>
   );

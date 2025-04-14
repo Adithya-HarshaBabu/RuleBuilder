@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import RuleConfigModal from './RuleConfigModal';
 
-const RuleRow = ({ rule, onChange, onDelete, readOnly, showLogic = true}) => {
+const RuleRow = ({ rule, onChange, onDelete, readOnly, showLogic = true, onAddAfter}) => {
   const [showPopup, setShowPopup] = useState(false);
   const popupRef = useRef(null);
 
@@ -56,6 +56,20 @@ const [showConfigModal, setShowConfigModal] = useState(false);
       <option value="AND">AND</option>
       <option value="OR">OR</option>
     </select>
+
+    <button
+  onClick={onAddAfter}
+  title="Add Rule After"
+  style={{
+    background: 'transparent',
+    border: 'none',
+    fontSize: '18px',
+    cursor: 'pointer',
+    paddingLeft: '4px'
+  }}
+>
+  ➕
+</button>
 
     <button onClick={onDelete} style={{ border: 'none', background: 'transparent' }}>
       🗑️
