@@ -19,7 +19,6 @@ const BlockSection = ({
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '16px' }}>
-      {/* Block-level buttons (left side) */}
       <div
         style={{
           display: 'flex',
@@ -56,7 +55,6 @@ const BlockSection = ({
         </button>
       </div>
 
-      {/* Block Container */}
       <div
         style={{
           background: isInclude ? '#e6f0ff' : '#ffe6e6',
@@ -69,7 +67,6 @@ const BlockSection = ({
           flex: 1,
         }}
       >
-        {/* Vertical label + toggle + collapse */}
         <div
           style={{
             display: 'flex',
@@ -105,7 +102,6 @@ const BlockSection = ({
           >
             {isInclude ? 'Include' : 'Exclude'}
           </div>
-
           <div
             onClick={() => onModeChange(isInclude ? 'exclude' : 'include')}
             style={{
@@ -132,8 +128,32 @@ const BlockSection = ({
           </div>
         </div>
 
-        {/* Groups inside block */}
-        {!collapsed && (
+        {collapsed ? (
+          <div
+            style={{
+              flex: 1,
+              fontSize: '12px',
+              fontFamily: 'monospace',
+              background: '#f5f5f5',
+              borderRadius: '6px',
+              padding: '6px 10px',
+              maxWidth: '100%',
+              overflowX: 'auto',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {groups
+              .filter((g) => g.rules?.length > 0)
+              .map((g, i) => {
+                const rules = g.rules
+                  .filter((r) => r.field)
+                  .map((r) => `${r.field} ${r.operator} ${r.value}`)
+                  .join(` ${g.logic || 'AND'} `);
+                return `(${rules})${i < groups.length - 1 ? ` ${g.logic || 'AND'} ` : ''}`;
+              })
+              .join('')}
+          </div>
+        ) : (
           <div style={{ flex: 1 }}>
             {groups.map((group, i) => (
               <div
@@ -145,7 +165,6 @@ const BlockSection = ({
                   gap: '8px',
                 }}
               >
-                {/* Logic operator on the left */}
                 <div
                   style={{
                     display: 'flex',
@@ -172,7 +191,6 @@ const BlockSection = ({
                   )}
                 </div>
 
-                {/* Group content */}
                 <div style={{ flex: 1 }}>
                   <RuleGroup
                     group={group}
@@ -180,7 +198,6 @@ const BlockSection = ({
                   />
                 </div>
 
-                {/* Group buttons */}
                 <div
                   style={{
                     display: 'flex',
