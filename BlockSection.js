@@ -30,7 +30,7 @@ const BlockSection = ({
         gap: '12px',
       }}
     >
-      {/* Left side vertical block label + toggle */}
+      {/* Vertical block label + toggle */}
       <div
         style={{
           display: 'flex',
@@ -55,7 +55,6 @@ const BlockSection = ({
           {isInclude ? 'Include' : 'Exclude'}
         </div>
 
-        {/* Toggle */}
         <div
           onClick={() => onModeChange(isInclude ? 'exclude' : 'include')}
           style={{
@@ -84,7 +83,7 @@ const BlockSection = ({
 
       {/* Right content area */}
       <div style={{ flex: 1 }}>
-        {/* Block-level controls outside the box */}
+        {/* Block-level buttons */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginBottom: '8px' }}>
           <button
             onClick={onAddBlock}
@@ -123,25 +122,18 @@ const BlockSection = ({
               gap: '8px',
             }}
           >
-            {/* Group */}
-            <div style={{ flex: 1 }}>
-              <RuleGroup
-                group={group}
-                onChange={(updated) => onGroupChange(i, updated)}
-              />
-            </div>
-
-            {/* Operator + Group Controls */}
+            {/* Logic operator on the left */}
             <div
               style={{
                 display: 'flex',
-                flexDirection: group.collapsed ? 'row' : 'column',
-                alignItems: 'center',
-                gap: '6px',
-                paddingTop: group.collapsed ? '2px' : '4px',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'flex-start',
+                minWidth: '70px',
+                paddingTop: group.collapsed ? '2px' : '6px',
               }}
             >
-              {groups.length > 1 && i < groups.length - 1 && (
+              {groups.length > 1 && i > 0 && (
                 <select
                   value={group.logic || 'AND'}
                   onChange={(e) => onLogicChange(i, e.target.value)}
@@ -155,7 +147,26 @@ const BlockSection = ({
                   <option value="OR">OR</option>
                 </select>
               )}
+            </div>
 
+            {/* Group content */}
+            <div style={{ flex: 1 }}>
+              <RuleGroup
+                group={group}
+                onChange={(updated) => onGroupChange(i, updated)}
+              />
+            </div>
+
+            {/* Group controls */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: group.collapsed ? 'row' : 'column',
+                alignItems: 'center',
+                gap: '6px',
+                paddingTop: group.collapsed ? '2px' : '4px',
+              }}
+            >
               <button
                 onClick={() => onAddGroup(i)}
                 title="Add Group"
