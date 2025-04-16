@@ -112,7 +112,6 @@ const BlockSection = ({
                 display: 'flex',
                 alignItems: 'flex-start',
                 marginBottom: '16px',
-                gap: '8px',
               }}>
                 {i > 0 && (
                   <select
@@ -124,7 +123,8 @@ const BlockSection = ({
                       height: '32px',
                       borderRadius: '4px',
                       border: '1px solid #ccc',
-                      marginTop: '6px'
+                      marginRight: '10px',
+                      marginTop: '4px',
                     }}
                   >
                     <option value="AND">AND</option>
@@ -141,6 +141,7 @@ const BlockSection = ({
                   alignItems: 'center',
                   gap: '6px',
                   paddingTop: group.collapsed ? '2px' : '4px',
+                  marginLeft: '8px',
                 }}>
                   <button onClick={() => onAddGroup(i)} title="Add Group" style={{
                     border: 'none',
