@@ -19,7 +19,7 @@ const BlockSection = ({
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '16px' }}>
-      {/* Block-level buttons (left of the block) */}
+      {/* Block-level buttons (left side) */}
       <div
         style={{
           display: 'flex',
@@ -56,7 +56,7 @@ const BlockSection = ({
         </button>
       </div>
 
-      {/* Main Block UI */}
+      {/* Block Container */}
       <div
         style={{
           background: isInclude ? '#e6f0ff' : '#ffe6e6',
@@ -69,7 +69,7 @@ const BlockSection = ({
           flex: 1,
         }}
       >
-        {/* Vertical label + toggle */}
+        {/* Vertical label + toggle + collapse */}
         <div
           style={{
             display: 'flex',
@@ -82,6 +82,18 @@ const BlockSection = ({
             borderRadius: '6px',
           }}
         >
+          <div
+            onClick={onToggleCollapse}
+            title="Collapse block"
+            style={{
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              transform: collapsed ? 'rotate(-90deg)' : 'none',
+              transition: 'transform 0.2s',
+            }}
+          >
+            ▶
+          </div>
           <div
             style={{
               writingMode: 'vertical-rl',
@@ -120,80 +132,67 @@ const BlockSection = ({
           </div>
         </div>
 
-        {/* Group content */}
-        <div style={{ flex: 1 }}>
-          {groups.map((group, i) => (
-            <div
-              key={group.id}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                marginBottom: '16px',
-                gap: '8px',
-              }}
-            >
-              {/* Logic operator left side */}
+        {/* Groups inside block */}
+        {!collapsed && (
+          <div style={{ flex: 1 }}>
+            {groups.map((group, i) => (
               <div
+                key={group.id}
                 style={{
                   display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
                   alignItems: 'flex-start',
-                  minWidth: '70px',
-                  paddingTop: group.collapsed ? '2px' : '6px',
+                  marginBottom: '16px',
+                  gap: '8px',
                 }}
               >
-                {groups.length > 1 && i > 0 && (
-                  <select
-                    value={group.logic || 'AND'}
-                    onChange={(e) => onLogicChange(i, e.target.value)}
-                    style={{
-                      fontSize: '12px',
-                      padding: '4px',
-                      width: '60px',
-                    }}
-                  >
-                    <option value="AND">AND</option>
-                    <option value="OR">OR</option>
-                  </select>
-                )}
-              </div>
-
-              {/* Group */}
-              <div style={{ flex: 1 }}>
-                <RuleGroup
-                  group={group}
-                  onChange={(updated) => onGroupChange(i, updated)}
-                />
-              </div>
-
-              {/* Group buttons */}
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: group.collapsed ? 'row' : 'column',
-                  alignItems: 'center',
-                  gap: '6px',
-                  paddingTop: group.collapsed ? '2px' : '4px',
-                }}
-              >
-                <button
-                  onClick={() => onAddGroup(i)}
-                  title="Add Group"
+                {/* Logic operator on the left */}
+                <div
                   style={{
-                    border: 'none',
-                    background: 'transparent',
-                    fontSize: '18px',
-                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'flex-start',
+                    minWidth: '70px',
+                    paddingTop: group.collapsed ? '2px' : '6px',
                   }}
                 >
-                  ➕
-                </button>
+                  {groups.length > 1 && i > 0 && (
+                    <select
+                      value={group.logic || 'AND'}
+                      onChange={(e) => onLogicChange(i, e.target.value)}
+                      style={{
+                        fontSize: '12px',
+                        padding: '4px',
+                        width: '60px',
+                      }}
+                    >
+                      <option value="AND">AND</option>
+                      <option value="OR">OR</option>
+                    </select>
+                  )}
+                </div>
 
-                {groups.length > 1 && (
+                {/* Group content */}
+                <div style={{ flex: 1 }}>
+                  <RuleGroup
+                    group={group}
+                    onChange={(updated) => onGroupChange(i, updated)}
+                  />
+                </div>
+
+                {/* Group buttons */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: group.collapsed ? 'row' : 'column',
+                    alignItems: 'center',
+                    gap: '6px',
+                    paddingTop: group.collapsed ? '2px' : '4px',
+                  }}
+                >
                   <button
-                    onClick={() => onDeleteGroup(i)}
-                    title="Delete Group"
+                    onClick={() => onAddGroup(i)}
+                    title="Add Group"
                     style={{
                       border: 'none',
                       background: 'transparent',
@@ -201,13 +200,28 @@ const BlockSection = ({
                       cursor: 'pointer',
                     }}
                   >
-                    🗑️
+                    ➕
                   </button>
-                )}
+
+                  {groups.length > 1 && (
+                    <button
+                      onClick={() => onDeleteGroup(i)}
+                      title="Delete Group"
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        fontSize: '18px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      🗑️
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
