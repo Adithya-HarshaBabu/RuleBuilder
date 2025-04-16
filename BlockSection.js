@@ -18,15 +18,15 @@ const BlockSection = ({
   const isInclude = color === 'blue';
 
   const renderGroupExpression = (node) => {
-    if (!node.children || node.children.length === 0) return '';
-    const parts = node.children.map((child) => {
-      if (child.children) {
+    const children = node.children || node.rules;
+    if (!children || children.length === 0) return '';
+    const parts = children.map((child) => {
+      if (child.children || child.rules) {
         return `(${renderGroupExpression(child)})`;
       } else if (child.field) {
         return `${child.field} ${child.operator} ${child.value}`;
-      } else {
-        return '';
       }
+      return '';
     }).filter(Boolean);
     return parts.join(` ${node.logic || 'AND'} `);
   };
@@ -56,13 +56,14 @@ const BlockSection = ({
         alignItems: 'flex-start',
         gap: '12px',
         flex: 1,
+        width: '100%',
       }}>
         <div style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: '8px',
-          minWidth: '60px',
+          minWidth: '70px',
           background: '#f0f4ff',
           padding: '8px',
           borderRadius: '6px',
@@ -99,6 +100,22 @@ const BlockSection = ({
               transition: 'left 0.2s',
             }} />
           </div>
+          <select
+            value={groups[1]?.logic || 'AND'}
+            onChange={(e) => onLogicChange(1, e.target.value)}
+            style={{
+              marginTop: '8px',
+              fontSize: '12px',
+              padding: '2px 6px',
+              borderRadius: '4px',
+              border: '1px solid #ccc',
+              background: '#fff',
+              width: '60px',
+            }}
+          >
+            <option value="AND">AND</option>
+            <option value="OR">OR</option>
+          </select>
         </div>
 
         {collapsed ? (
@@ -114,7 +131,7 @@ const BlockSection = ({
             whiteSpace: 'nowrap',
           }}>
             {groups
-              .filter((g) => g.children?.length > 0)
+              .filter((g) => (g.children || g.rules)?.length > 0)
               .map((g) => `(${renderGroupExpression(g)})`)
               .join(' AND ')}
           </div>
@@ -127,35 +144,8 @@ const BlockSection = ({
                 marginBottom: '16px',
                 gap: '8px',
               }}>
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'flex-start',
-                  minWidth: '70px',
-                  paddingTop: group.collapsed ? '2px' : '6px',
-                }}>
-                  {groups.length > 1 && i > 0 && (
-                    <select
-                      value={group.logic || 'AND'}
-                      onChange={(e) => onLogicChange(i, e.target.value)}
-                      style={{
-                        fontSize: '12px',
-                        padding: '4px',
-                        width: '60px',
-                      }}
-                    >
-                      <option value="AND">AND</option>
-                      <option value="OR">OR</option>
-                    </select>
-                  )}
-                </div>
-
-                <div style={{ flex: 1 }}>
-                  <RuleGroup
-                    group={group}
-                    onChange={(updated) => onGroupChange(i, updated)}
-                  />
+                <div style={{ flex: 1, marginLeft: 0 }}>
+                  <RuleGroup group={group} onChange={(updated) => onGroupChange(i, updated)} />
                 </div>
 
                 <div style={{
