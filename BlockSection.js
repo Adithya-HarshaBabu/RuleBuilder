@@ -100,22 +100,6 @@ const BlockSection = ({
               transition: 'left 0.2s',
             }} />
           </div>
-          <select
-            value={groups[1]?.logic || 'AND'}
-            onChange={(e) => onLogicChange(1, e.target.value)}
-            style={{
-              marginTop: '8px',
-              fontSize: '12px',
-              padding: '2px 6px',
-              borderRadius: '4px',
-              border: '1px solid #ccc',
-              background: '#fff',
-              width: '60px',
-            }}
-          >
-            <option value="AND">AND</option>
-            <option value="OR">OR</option>
-          </select>
         </div>
 
         {collapsed ? (
@@ -144,7 +128,25 @@ const BlockSection = ({
                 marginBottom: '16px',
                 gap: '8px',
               }}>
-                <div style={{ flex: 1, marginLeft: 0 }}>
+                {groups.length > 1 && i > 0 && (
+                  <div style={{ minWidth: '60px', marginRight: '4px' }}>
+                    <select
+                      value={group.logic || 'AND'}
+                      onChange={(e) => onLogicChange(i, e.target.value)}
+                      style={{
+                        fontSize: '12px',
+                        padding: '4px',
+                        width: '60px',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      <option value="AND">AND</option>
+                      <option value="OR">OR</option>
+                    </select>
+                  </div>
+                )}
+
+                <div style={{ flex: 1 }}>
                   <RuleGroup group={group} onChange={(updated) => onGroupChange(i, updated)} />
                 </div>
 
