@@ -17,6 +17,20 @@ const BlockSection = ({
 }) => {
   const isInclude = color === 'blue';
 
+  const renderGroupExpression = (node) => {
+    if (!node.children || node.children.length === 0) return '';
+    const parts = node.children.map((child) => {
+      if (child.children) {
+        return `(${renderGroupExpression(child)})`;
+      } else if (child.field) {
+        return `${child.field} ${child.operator} ${child.value}`;
+      } else {
+        return '';
+      }
+    }).filter(Boolean);
+    return parts.join(` ${node.logic || 'AND'} `);
+  };
+
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '16px' }}>
       <div
@@ -29,152 +43,98 @@ const BlockSection = ({
           marginRight: '8px',
         }}
       >
-        <button
-          onClick={onAddBlock}
-          title="Add Block"
-          style={{
-            background: 'transparent',
-            border: 'none',
-            fontSize: '18px',
-            cursor: 'pointer',
-          }}
-        >
-          ➕
-        </button>
-        <button
-          onClick={onDelete}
-          title="Delete Block"
-          style={{
-            background: 'transparent',
-            border: 'none',
-            fontSize: '18px',
-            cursor: 'pointer',
-          }}
-        >
-          🗑️
-        </button>
+        <button onClick={onAddBlock} title="Add Block" style={{ background: 'transparent', border: 'none', fontSize: '18px', cursor: 'pointer' }}>➕</button>
+        <button onClick={onDelete} title="Delete Block" style={{ background: 'transparent', border: 'none', fontSize: '18px', cursor: 'pointer' }}>🗑️</button>
       </div>
 
-      <div
-        style={{
-          background: isInclude ? '#e6f0ff' : '#ffe6e6',
-          borderLeft: `4px solid ${isInclude ? '#3399ff' : '#ff4d4d'}`,
-          padding: '12px',
-          borderRadius: '6px',
+      <div style={{
+        background: isInclude ? '#e6f0ff' : '#ffe6e6',
+        borderLeft: `4px solid ${isInclude ? '#3399ff' : '#ff4d4d'}`,
+        padding: '12px',
+        borderRadius: '6px',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '12px',
+        flex: 1,
+      }}>
+        <div style={{
           display: 'flex',
-          alignItems: 'flex-start',
-          gap: '12px',
-          flex: 1,
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '8px',
-            minWidth: '60px',
-            background: '#f0f4ff',
-            padding: '8px',
-            borderRadius: '6px',
-          }}
-        >
-          <div
-            onClick={onToggleCollapse}
-            title="Collapse block"
-            style={{
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              transform: collapsed ? 'rotate(-90deg)' : 'none',
-              transition: 'transform 0.2s',
-            }}
-          >
-            ▶
-          </div>
-          <div
-            style={{
-              writingMode: 'vertical-rl',
-              transform: 'rotate(180deg)',
-              fontWeight: 'bold',
-              fontSize: '14px',
-              color: isInclude ? '#3399ff' : '#ff4d4d',
-            }}
-          >
-            {isInclude ? 'Include' : 'Exclude'}
-          </div>
-          <div
-            onClick={() => onModeChange(isInclude ? 'exclude' : 'include')}
-            style={{
-              width: 34,
-              height: 20,
-              borderRadius: 12,
-              backgroundColor: isInclude ? '#3399ff' : '#ff4d4d',
-              cursor: 'pointer',
-              position: 'relative',
-            }}
-          >
-            <div
-              style={{
-                position: 'absolute',
-                top: 3,
-                left: isInclude ? 17 : 3,
-                width: 14,
-                height: 14,
-                borderRadius: '50%',
-                backgroundColor: '#fff',
-                transition: 'left 0.2s',
-              }}
-            />
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '8px',
+          minWidth: '60px',
+          background: '#f0f4ff',
+          padding: '8px',
+          borderRadius: '6px',
+        }}>
+          <div onClick={onToggleCollapse} title="Collapse block" style={{
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            transform: collapsed ? 'rotate(-90deg)' : 'none',
+            transition: 'transform 0.2s',
+          }}>▶</div>
+          <div style={{
+            writingMode: 'vertical-rl',
+            transform: 'rotate(180deg)',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            color: isInclude ? '#3399ff' : '#ff4d4d',
+          }}>{isInclude ? 'Include' : 'Exclude'}</div>
+          <div onClick={() => onModeChange(isInclude ? 'exclude' : 'include')} style={{
+            width: 34,
+            height: 20,
+            borderRadius: 12,
+            backgroundColor: isInclude ? '#3399ff' : '#ff4d4d',
+            cursor: 'pointer',
+            position: 'relative',
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: 3,
+              left: isInclude ? 17 : 3,
+              width: 14,
+              height: 14,
+              borderRadius: '50%',
+              backgroundColor: '#fff',
+              transition: 'left 0.2s',
+            }} />
           </div>
         </div>
 
         {collapsed ? (
-          <div
-            style={{
-              flex: 1,
-              fontSize: '12px',
-              fontFamily: 'monospace',
-              background: '#f5f5f5',
-              borderRadius: '6px',
-              padding: '6px 10px',
-              maxWidth: '100%',
-              overflowX: 'auto',
-              whiteSpace: 'nowrap',
-            }}
-          >
+          <div style={{
+            flex: 1,
+            fontSize: '12px',
+            fontFamily: 'monospace',
+            background: '#f5f5f5',
+            borderRadius: '6px',
+            padding: '6px 10px',
+            maxWidth: '100%',
+            overflowX: 'auto',
+            whiteSpace: 'nowrap',
+          }}>
             {groups
-              .filter((g) => g.rules?.length > 0)
-              .map((g, i) => {
-                const rules = g.rules
-                  .filter((r) => r.field)
-                  .map((r) => `${r.field} ${r.operator} ${r.value}`)
-                  .join(` ${g.logic || 'AND'} `);
-                return `(${rules})${i < groups.length - 1 ? ` ${g.logic || 'AND'} ` : ''}`;
-              })
-              .join('')}
+              .filter((g) => g.children?.length > 0)
+              .map((g) => `(${renderGroupExpression(g)})`)
+              .join(' AND ')}
           </div>
         ) : (
           <div style={{ flex: 1 }}>
             {groups.map((group, i) => (
-              <div
-                key={group.id}
-                style={{
+              <div key={group.id} style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                marginBottom: '16px',
+                gap: '8px',
+              }}>
+                <div style={{
                   display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
                   alignItems: 'flex-start',
-                  marginBottom: '16px',
-                  gap: '8px',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'flex-start',
-                    minWidth: '70px',
-                    paddingTop: group.collapsed ? '2px' : '6px',
-                  }}
-                >
+                  minWidth: '70px',
+                  paddingTop: group.collapsed ? '2px' : '6px',
+                }}>
                   {groups.length > 1 && i > 0 && (
                     <select
                       value={group.logic || 'AND'}
@@ -198,41 +158,27 @@ const BlockSection = ({
                   />
                 </div>
 
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: group.collapsed ? 'row' : 'column',
-                    alignItems: 'center',
-                    gap: '6px',
-                    paddingTop: group.collapsed ? '2px' : '4px',
-                  }}
-                >
-                  <button
-                    onClick={() => onAddGroup(i)}
-                    title="Add Group"
-                    style={{
+                <div style={{
+                  display: 'flex',
+                  flexDirection: group.collapsed ? 'row' : 'column',
+                  alignItems: 'center',
+                  gap: '6px',
+                  paddingTop: group.collapsed ? '2px' : '4px',
+                }}>
+                  <button onClick={() => onAddGroup(i)} title="Add Group" style={{
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '18px',
+                    cursor: 'pointer',
+                  }}>➕</button>
+
+                  {groups.length > 1 && (
+                    <button onClick={() => onDeleteGroup(i)} title="Delete Group" style={{
                       border: 'none',
                       background: 'transparent',
                       fontSize: '18px',
                       cursor: 'pointer',
-                    }}
-                  >
-                    ➕
-                  </button>
-
-                  {groups.length > 1 && (
-                    <button
-                      onClick={() => onDeleteGroup(i)}
-                      title="Delete Group"
-                      style={{
-                        border: 'none',
-                        background: 'transparent',
-                        fontSize: '18px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      🗑️
-                    </button>
+                    }}>🗑️</button>
                   )}
                 </div>
               </div>
