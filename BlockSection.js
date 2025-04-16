@@ -100,6 +100,26 @@ const BlockSection = ({
               transition: 'left 0.2s',
             }} />
           </div>
+          {/* aligned operator dropdowns */}
+          {groups.map((group, i) => (
+            i > 0 ? (
+              <select
+                key={`logic-${i}`}
+                value={group.logic || 'AND'}
+                onChange={(e) => onLogicChange(i, e.target.value)}
+                style={{
+                  fontSize: '12px',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  border: '1px solid #ccc',
+                  width: '60px',
+                }}
+              >
+                <option value="AND">AND</option>
+                <option value="OR">OR</option>
+              </select>
+            ) : <div key={`empty-${i}`} style={{ height: '30px' }} />
+          ))}
         </div>
 
         {collapsed ? (
@@ -128,24 +148,6 @@ const BlockSection = ({
                 marginBottom: '16px',
                 gap: '8px',
               }}>
-                {groups.length > 1 && i > 0 && (
-                  <div style={{ minWidth: '60px', marginRight: '4px' }}>
-                    <select
-                      value={group.logic || 'AND'}
-                      onChange={(e) => onLogicChange(i, e.target.value)}
-                      style={{
-                        fontSize: '12px',
-                        padding: '4px',
-                        width: '60px',
-                        borderRadius: '4px',
-                      }}
-                    >
-                      <option value="AND">AND</option>
-                      <option value="OR">OR</option>
-                    </select>
-                  </div>
-                )}
-
                 <div style={{ flex: 1 }}>
                   <RuleGroup group={group} onChange={(updated) => onGroupChange(i, updated)} />
                 </div>
