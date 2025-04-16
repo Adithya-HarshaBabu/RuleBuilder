@@ -27,17 +27,20 @@ const BlockSection = ({
         borderRadius: '6px',
         display: 'flex',
         alignItems: 'flex-start',
+        gap: '12px',
       }}
     >
-      {/* Left side vertical block controls */}
+      {/* Left side vertical block label + toggle */}
       <div
         style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          marginRight: '16px',
           gap: '8px',
           minWidth: '60px',
+          background: '#f0f4ff',
+          padding: '8px',
+          borderRadius: '6px',
         }}
       >
         <div
@@ -77,36 +80,39 @@ const BlockSection = ({
             }}
           />
         </div>
-
-        <button
-          onClick={onAddBlock}
-          title="Add Block"
-          style={{
-            background: 'transparent',
-            border: 'none',
-            fontSize: '18px',
-            cursor: 'pointer',
-          }}
-        >
-          ➕
-        </button>
-
-        <button
-          onClick={onDelete}
-          title="Delete Block"
-          style={{
-            background: 'transparent',
-            border: 'none',
-            fontSize: '18px',
-            cursor: 'pointer',
-          }}
-        >
-          🗑️
-        </button>
       </div>
 
-      {/* Main content area (block groups) */}
+      {/* Right content area */}
       <div style={{ flex: 1 }}>
+        {/* Block-level controls outside the box */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginBottom: '8px' }}>
+          <button
+            onClick={onAddBlock}
+            title="Add Block"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              fontSize: '18px',
+              cursor: 'pointer',
+            }}
+          >
+            ➕
+          </button>
+
+          <button
+            onClick={onDelete}
+            title="Delete Block"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              fontSize: '18px',
+              cursor: 'pointer',
+            }}
+          >
+            🗑️
+          </button>
+        </div>
+
         {groups.map((group, i) => (
           <div
             key={group.id}
@@ -117,7 +123,7 @@ const BlockSection = ({
               gap: '8px',
             }}
           >
-            {/* Group Content */}
+            {/* Group */}
             <div style={{ flex: 1 }}>
               <RuleGroup
                 group={group}
@@ -125,7 +131,7 @@ const BlockSection = ({
               />
             </div>
 
-            {/* Operator + Group Buttons */}
+            {/* Operator + Group Controls */}
             <div
               style={{
                 display: 'flex',
@@ -135,7 +141,6 @@ const BlockSection = ({
                 paddingTop: group.collapsed ? '2px' : '4px',
               }}
             >
-              {/* Only show logic dropdown between groups */}
               {groups.length > 1 && i < groups.length - 1 && (
                 <select
                   value={group.logic || 'AND'}
