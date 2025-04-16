@@ -47,15 +47,14 @@ const BlockSection = ({
         <button onClick={onDelete} title="Delete Block" style={{ background: 'transparent', border: 'none', fontSize: '18px', cursor: 'pointer' }}>🗑️</button>
       </div>
 
-      <div style={{
+      <div style={{ width: '100%',
         background: isInclude ? '#e6f0ff' : '#ffe6e6',
         borderLeft: `4px solid ${isInclude ? '#3399ff' : '#ff4d4d'}`,
         padding: '12px',
         borderRadius: '6px',
-        flex: 1,
         width: '100%',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+        <div style={{ width: '100%', display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
           <div onClick={onToggleCollapse} title="Collapse block" style={{
             cursor: 'pointer',
             fontWeight: 'bold',
@@ -76,7 +75,7 @@ const BlockSection = ({
             cursor: 'pointer',
             position: 'relative',
           }}>
-            <div style={{
+            <div style={{ width: '100%',
               position: 'absolute',
               top: 3,
               left: isInclude ? 17 : 3,
@@ -90,7 +89,7 @@ const BlockSection = ({
         </div>
 
         {collapsed ? (
-          <div style={{
+          <div style={{ width: '100%',
             fontSize: '12px',
             fontFamily: 'monospace',
             background: '#f5f5f5',
@@ -113,7 +112,7 @@ const BlockSection = ({
                 alignItems: 'flex-start',
                 marginBottom: '16px',
               }}>
-                {i > 0 && (
+                {i > 0 ? (
                   <select
                     value={group.logic || 'AND'}
                     onChange={(e) => onLogicChange(i, e.target.value)}
@@ -129,13 +128,13 @@ const BlockSection = ({
                   >
                     <option value="AND">AND</option>
                     <option value="OR">OR</option>
-                  </select>
+                  </select>) : (<div style={{ width: '80px', marginRight: '10px' }}></div>)
                 )}
-                <div style={{ flex: 1 }}>
+                <div style={{ width: '100%', flex: 1 }}>
                   <RuleGroup group={group} onChange={(updated) => onGroupChange(i, updated)} />
                 </div>
 
-                <div style={{
+                <div style={{ width: '100%',
                   display: 'flex',
                   flexDirection: group.collapsed ? 'row' : 'column',
                   alignItems: 'center',
