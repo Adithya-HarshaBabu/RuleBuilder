@@ -52,35 +52,22 @@ const BlockSection = ({
         borderLeft: `4px solid ${isInclude ? '#3399ff' : '#ff4d4d'}`,
         padding: '12px',
         borderRadius: '6px',
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '12px',
         flex: 1,
         width: '100%',
       }}>
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '8px',
-          minWidth: '70px',
-          background: '#f0f4ff',
-          padding: '8px',
-          borderRadius: '6px',
-        }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
           <div onClick={onToggleCollapse} title="Collapse block" style={{
             cursor: 'pointer',
             fontWeight: 'bold',
             transform: collapsed ? 'rotate(-90deg)' : 'none',
             transition: 'transform 0.2s',
+            marginRight: '10px',
           }}>▶</div>
-          <div style={{
-            writingMode: 'vertical-rl',
-            transform: 'rotate(180deg)',
+          <span style={{
             fontWeight: 'bold',
-            fontSize: '14px',
             color: isInclude ? '#3399ff' : '#ff4d4d',
-          }}>{isInclude ? 'Include' : 'Exclude'}</div>
+            marginRight: '10px',
+          }}>{isInclude ? 'Include' : 'Exclude'}</span>
           <div onClick={() => onModeChange(isInclude ? 'exclude' : 'include')} style={{
             width: 34,
             height: 20,
@@ -100,31 +87,10 @@ const BlockSection = ({
               transition: 'left 0.2s',
             }} />
           </div>
-          {/* aligned operator dropdowns */}
-          {groups.map((group, i) => (
-            i > 0 ? (
-              <select
-                key={`logic-${i}`}
-                value={group.logic || 'AND'}
-                onChange={(e) => onLogicChange(i, e.target.value)}
-                style={{
-                  fontSize: '12px',
-                  padding: '2px 6px',
-                  borderRadius: '4px',
-                  border: '1px solid #ccc',
-                  width: '60px',
-                }}
-              >
-                <option value="AND">AND</option>
-                <option value="OR">OR</option>
-              </select>
-            ) : <div key={`empty-${i}`} style={{ height: '30px' }} />
-          ))}
         </div>
 
         {collapsed ? (
           <div style={{
-            flex: 1,
             fontSize: '12px',
             fontFamily: 'monospace',
             background: '#f5f5f5',
@@ -140,7 +106,7 @@ const BlockSection = ({
               .join(' AND ')}
           </div>
         ) : (
-          <div style={{ flex: 1 }}>
+          <div>
             {groups.map((group, i) => (
               <div key={group.id} style={{
                 display: 'flex',
@@ -148,6 +114,23 @@ const BlockSection = ({
                 marginBottom: '16px',
                 gap: '8px',
               }}>
+                {i > 0 && (
+                  <select
+                    value={group.logic || 'AND'}
+                    onChange={(e) => onLogicChange(i, e.target.value)}
+                    style={{
+                      fontSize: '12px',
+                      padding: '4px 8px',
+                      height: '32px',
+                      borderRadius: '4px',
+                      border: '1px solid #ccc',
+                      marginTop: '6px'
+                    }}
+                  >
+                    <option value="AND">AND</option>
+                    <option value="OR">OR</option>
+                  </select>
+                )}
                 <div style={{ flex: 1 }}>
                   <RuleGroup group={group} onChange={(updated) => onGroupChange(i, updated)} />
                 </div>
