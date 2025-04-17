@@ -6,6 +6,7 @@ import { v4 as uuid } from 'uuid';
 
 const RuleGroup = ({ group, onChange }) => {
   const children = Array.isArray(group.children) ? group.children : [];
+  const collapsed = group.collapsed || false;
 
   const updateChild = (index, updatedChild) => {
     const newChildren = [...children];
@@ -18,6 +19,17 @@ const RuleGroup = ({ group, onChange }) => {
     onChange({ ...group, children: newChildren });
   };
 
+  const duplicateRule = (index) => {
+    const ruleToCopy = children[index];
+    const newRule = {
+      ...ruleToCopy,
+      id: uuid(),
+    }
+    const newChildren = [...children];
+    newChildren.splice(index + 1, 0, newRule);
+    onChange({...group, children: newChildren});
+  }
+
   const insertNewRuleAfter = (index) => {
     const newRule = {
       id: uuid(),
@@ -27,6 +39,8 @@ const RuleGroup = ({ group, onChange }) => {
       value: '',
       logic: 'AND',
     };
+
+    
 
     const newChildren = [...children];
     if (index === -1) {
@@ -38,8 +52,75 @@ const RuleGroup = ({ group, onChange }) => {
     onChange({ ...group, children: newChildren });
   };
 
+const toggleCollapse = () => {
+  onChange({ ...group, collapsed: !collapsed});
+}
+
   return (
-    <div className="rule-group">
+    <div className="rule-group"
+    style={{
+      border: '1px solid #ccc',
+      borderRadius: 6,
+      padding: 10,
+      marginBottom: 8,
+      background: '#fafafa',
+      //boxShadow: '1px 0px 8px -2px rgb(40 60 108 / 35%)'
+
+    }}
+    > 
+      <div
+      onClick={() => onChange({...group, collapsed: !collapsed})}
+     style ={{
+      cursor: 'pointer',
+      fontWeight: 'bold',
+      display:'flex',
+      alignItems: 'center',
+      marginBottom: collapsed? 0 : 8,
+     }}
+    >
+      <span style={{ marginRight: 6}}>{collapsed? '▶️' : '▼'}</span>
+      Group
+      </div>
+      { collapsed && children.length> 0 && (
+        <div style = {{
+          background: '#eee',
+          padding: '6px 10px',
+          borderRadius: '4px',
+          fontSize: '13px',
+          color:'#444',
+          fontFamily: 'monospace',
+          display:'flex',
+          flexWrap: 'wrap',
+          gap:'4px'
+        }}>
+          {children.map((r,i) => {
+          const isLast = i === children.length - 1;
+          const logicColor = r.logic === 'OR' ? '#d13b3b' : '#2d7d46';
+          return(
+            <React.Fragment key={r.id}>
+              <span>{`${r.field} ${r.operator} ${r.value} `}</span>
+              {!isLast && (
+                <span style={{
+                  color: logicColor,
+                  fontWeight: 600,
+                }}>
+                  {r.logic}
+                </span>
+              )}
+            </React.Fragment>
+          )
+            
+
+
+        })}
+          </div>
+
+      )
+
+
+      }
+      {!collapsed && (
+        <>
       <SortableContext items={children.map(c => c.id)} strategy={verticalListSortingStrategy}>
         {children.map((child, index) => (
           <SortableItem key={child.id} id={child.id}>
@@ -49,6 +130,7 @@ const RuleGroup = ({ group, onChange }) => {
               onDelete={() => deleteChild(index)}
               onAddAfter={() => insertNewRuleAfter(index)}
               showLogic={index < children.length - 1}
+              onCopy={() => duplicateRule(index)}
             />
           </SortableItem>
         ))}
@@ -69,6 +151,8 @@ const RuleGroup = ({ group, onChange }) => {
             ➕ Add Rule
           </button>
         </div>
+      )}
+      </>
       )}
     </div>
   );
