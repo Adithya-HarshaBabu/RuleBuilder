@@ -1,168 +1,80 @@
 import React from 'react';
 import RuleGroup from './RuleGroup';
+import './styles.css';
 
 const BlockSection = ({
-  title,
-  color,
-  groups,
-  onGroupChange,
+  block,
   onAddGroup,
-  onDeleteGroup,
+  onAddRule,
   onDelete,
-  onModeChange,
-  onAddBlock,
-  onLogicChange,
-  collapsed,
-  onToggleCollapse,
+  onToggleInclude,
+  onUpdateGroup,
+  onDeleteGroup,
+  onChangeGroupOperator,
+  onCopyRule,
+  onDeleteRule,
+  onUpdateRule,
+  onCopyGroup,
+  onToggleBlockCollapse
 }) => {
-  const isInclude = color === 'blue';
-
-  const renderGroupExpression = (node) => {
-    const children = node.children || node.rules;
-    if (!children || children.length === 0) return '';
-    const parts = children.map((child) => {
-      if (child.children || child.rules) {
-        return `(${renderGroupExpression(child)})`;
-      } else if (child.field) {
-        return `${child.field} ${child.operator} ${child.value}`;
-      }
-      return '';
-    }).filter(Boolean);
-    return parts.join(` ${node.logic || 'AND'} `);
-  };
-
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '16px' }}>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          alignItems: 'center',
-          paddingTop: '8px',
-          marginRight: '8px',
-        }}
-      >
-        <button onClick={onAddBlock} title="Add Block" style={{ background: 'transparent', border: 'none', fontSize: '14px', cursor: 'pointer', width:'max-content'  }}>➕ Add Block</button>
-        <button onClick={onDelete} title="Delete Block" style={{ background: 'transparent', border: 'none', fontSize: '15px', cursor: 'pointer' }}>🗑️</button>
-      </div>
+    <div className={`block-section ${block.include ? 'include-block' : 'exclude-block'}`}>
+      <div className="block-header">
+        <div className="block-controls">
+          <button onClick={() => onAddGroup(block.id)} className="icon-button">➕</button>
+          <button onClick={() => onDelete(block.id)} className="icon-button">🗑️</button>
 
-      <div style={{ width: '100%',
-        background: isInclude ? '#e6f0ff' : '#ffe6e6',
-        borderLeft: `4px solid ${isInclude ? '#3399ff' : '#ff4d4d'}`,
-        padding: '12px',
-        borderRadius: '6px',
-        width: '100%',
-      }}>
-        <div style={{ width: '100%', display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-          <div onClick={onToggleCollapse} title="Collapse block" style={{
-            cursor: 'pointer',
-            fontWeight: 'bold',
-            transition: 'transform 0.2s',
-            marginRight: '10px',
-          }}>{collapsed? '▶️' : '▼'}</div>
-          <span style={{
-            fontWeight: 'bold',
-            color: isInclude ? '#3399ff' : '#ff4d4d',
-            marginRight: '10px',
-          }}>{isInclude ? 'Include' : 'Exclude'}</span>
-          <div onClick={() => onModeChange(isInclude ? 'exclude' : 'include')} style={{
-            width: 34,
-            height: 20,
-            borderRadius: 12,
-            backgroundColor: isInclude ? '#3399ff' : '#ff4d4d',
-            cursor: 'pointer',
-            position: 'relative',
-          }}>
-            <div style={{ width: '100%',
-              position: 'absolute',
-              top: 3,
-              left: isInclude ? 17 : 3,
-              width: 14,
-              height: 14,
-              borderRadius: '50%',
-              backgroundColor: '#fff',
-              transition: 'left 0.2s',
-            }} />
+          <div className="toggle-wrapper">
+            <label className="toggle-label">{block.include ? 'Include' : 'Exclude'}</label>
+            <label className="switch">
+              <input
+                type="checkbox"
+                checked={block.include}
+                onChange={() => onToggleInclude(block.id)}
+              />
+              <span className="slider"></span>
+            </label>
           </div>
         </div>
 
-        {collapsed ? (
-          <div style={{ width: '100%',
-            fontSize: '12px',
-            fontFamily: 'monospace',
-            background: '#f5f5f5',
-            borderRadius: '6px',
-            padding: '6px 10px',
-            maxWidth: '100%',
-            overflowX: 'auto',
-            whiteSpace: 'nowrap',
-          }}>
-            {groups
-              .filter((g) => (g.children || g.rules)?.length > 0)
-              .map((g) => `(${renderGroupExpression(g)})`)
-              .join(' AND ')}
-          </div>
-        ) : (
-          <div>
-            {groups.map((group, i) => (
-              <div key={group.id} style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                marginBottom: '0px',
-              }}>
-                {i > 0 ? (
+        <div className="block-title" onClick={() => onToggleBlockCollapse(block.id)}>
+          <span>{block.include ? 'Include' : 'Exclude'}</span>
+        </div>
+      </div>
+
+      {!block.collapsed && (
+        <div className="groups-wrapper">
+          {block.groups.map((group, index) => (
+            <div className="group-with-operator" key={group.id}>
+              {index > 0 && (
+                <div className="group-operator">
                   <select
-                    value={group.logic || 'AND'}
-                    onChange={(e) => onLogicChange(i, e.target.value)}
-                    style={{
-                      fontSize: '12px',
-                      /*padding: '4px 8px',*/
-                      height: '32px',
-                      borderRadius: '4px',
-                      border: '1px solid #ccc',
-                      marginRight: '10px',
-                      marginTop: '4px',
-                    }}
+                    value={group.operator || 'AND'}
+                    onChange={(e) =>
+                      onChangeGroupOperator(block.id, group.id, e.target.value)
+                    }
                   >
                     <option value="AND">AND</option>
                     <option value="OR">OR</option>
-                  </select>) : (<div style={{ width: '58px' /*, marginRight: '10px'*/ }}></div>)
+                  </select>
+                </div>
+              )}
+              <RuleGroup
+                group={group}
+                onAddRule={(rule) => onAddRule(block.id, group.id, rule)}
+                onDeleteGroup={() => onDeleteGroup(block.id, group.id)}
+                onUpdateRule={(ruleId, changes) =>
+                  onUpdateRule(block.id, group.id, ruleId, changes)
                 }
-                <div style={{ width: '100%', flex: 1 }}>
-                  <RuleGroup group={group} onChange={(updated) => onGroupChange(i, updated)} />
-                </div>
-
-                <div style={{ width: '100%',
-                  width:'fit-content',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '6px',
-                  paddingTop: group.collapsed ? '2px' : '4px',
-                  marginLeft: '8px',
-                }}>
-                  <button onClick={() => onAddGroup(i)} title="Add Group" style={{
-                    border: 'none',
-                    background: 'transparent',
-                    fontSize: '18px',
-                    cursor: 'pointer',
-                  }}>➕</button>
-
-                  {groups.length > 1 && (
-                    <button onClick={() => onDeleteGroup(i)} title="Delete Group" style={{
-                      border: 'none',
-                      background: 'transparent',
-                      fontSize: '18px',
-                      cursor: 'pointer',
-                    }}>🗑️</button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                onDeleteRule={(ruleId) => onDeleteRule(block.id, group.id, ruleId)}
+                onCopyRule={(rule) => onCopyRule(block.id, group.id, rule)}
+                onCopyGroup={() => onCopyGroup(block.id, group)}
+                blockId={block.id}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
