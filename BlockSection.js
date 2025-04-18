@@ -1,80 +1,97 @@
+
 import React from 'react';
 import RuleGroup from './RuleGroup';
-import './styles.css';
 
 const BlockSection = ({
-  block,
+  title,
+  color,
+  groups,
+  onGroupChange,
   onAddGroup,
-  onAddRule,
-  onDelete,
-  onToggleInclude,
-  onUpdateGroup,
   onDeleteGroup,
-  onChangeGroupOperator,
-  onCopyRule,
-  onDeleteRule,
-  onUpdateRule,
-  onCopyGroup,
-  onToggleBlockCollapse
+  onDelete,
+  onModeChange,
+  onAddBlock,
+  onLogicChange,
+  collapsed,
+  onToggleCollapse,
 }) => {
-  return (
-    <div className={`block-section ${block.include ? 'include-block' : 'exclude-block'}`}>
-      <div className="block-header">
-        <div className="block-controls">
-          <button onClick={() => onAddGroup(block.id)} className="icon-button">➕</button>
-          <button onClick={() => onDelete(block.id)} className="icon-button">🗑️</button>
+  const isInclude = color === 'blue';
 
-          <div className="toggle-wrapper">
-            <label className="toggle-label">{block.include ? 'Include' : 'Exclude'}</label>
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={block.include}
-                onChange={() => onToggleInclude(block.id)}
-              />
-              <span className="slider"></span>
-            </label>
+  const renderGroupExpression = (node) => {
+    const children = node.children || node.rules;
+    if (!children || children.length === 0) return '';
+    const parts = children.map((child) => {
+      if (child.children || child.rules) {
+        return `(${renderGroupExpression(child)})`;
+      } else if (child.field) {
+        return `${child.field} ${child.operator} ${child.value}`;
+      }
+      return '';
+    }).filter(Boolean);
+    return parts.join(` ${node.logic || 'AND'} `);
+  };
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '16px' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          alignItems: 'center',
+          paddingTop: '8px',
+          marginRight: '8px',
+        }}
+      >
+        <button onClick={onAddBlock} title="Add Block" style={{ background: 'transparent', border: 'none', fontSize: '14px', cursor: 'pointer' }}>➕</button>
+        <button onClick={onDelete} title="Delete Block" style={{ background: 'transparent', border: 'none', fontSize: '15px', cursor: 'pointer' }}>🗑️</button>
+        <label style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontWeight: 'bold', color: isInclude ? '#3399ff' : '#ff4d4d', marginTop: '12px' }}>{title}</label>
+        <label className="switch" style={{ marginTop: '6px' }}>
+          <input type="checkbox" checked={isInclude} onChange={onModeChange} />
+          <span className="slider round"></span>
+        </label>
+      </div>
+
+      <div style={{
+        width: '100%',
+        background: isInclude ? '#e6f0ff' : '#ffe6e6',
+        borderLeft: `4px solid ${isInclude ? '#3399ff' : '#ff4d4d'}`,
+        padding: '12px',
+        borderRadius: '6px'
+      }}>
+        <div style={{ width: '100%', display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+          <div onClick={onToggleCollapse} title="Collapse block" style={{
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            marginRight: '10px',
+          }}>
+            {collapsed ? '▶' : '▼'}
+          </div>
+          <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
+            {title}
           </div>
         </div>
 
-        <div className="block-title" onClick={() => onToggleBlockCollapse(block.id)}>
-          <span>{block.include ? 'Include' : 'Exclude'}</span>
-        </div>
+        {!collapsed && (
+          <>
+            {groups.map((group, groupIndex) => (
+              <div key={group.id || groupIndex} style={{ marginBottom: '10px' }}>
+                <RuleGroup
+                  group={group}
+                  onChange={(updatedGroup) => onGroupChange(groupIndex, updatedGroup)}
+                  onAddRule={() => onAddGroup(groupIndex, true)}
+                  onAddGroup={() => onAddGroup(groupIndex, false)}
+                  onDelete={() => onDeleteGroup(groupIndex)}
+                  onLogicChange={(logic) => onLogicChange(groupIndex, logic)}
+                  showLogic={groupIndex > 0}
+                  isInclude={isInclude}
+                />
+              </div>
+            ))}
+          </>
+        )}
       </div>
-
-      {!block.collapsed && (
-        <div className="groups-wrapper">
-          {block.groups.map((group, index) => (
-            <div className="group-with-operator" key={group.id}>
-              {index > 0 && (
-                <div className="group-operator">
-                  <select
-                    value={group.operator || 'AND'}
-                    onChange={(e) =>
-                      onChangeGroupOperator(block.id, group.id, e.target.value)
-                    }
-                  >
-                    <option value="AND">AND</option>
-                    <option value="OR">OR</option>
-                  </select>
-                </div>
-              )}
-              <RuleGroup
-                group={group}
-                onAddRule={(rule) => onAddRule(block.id, group.id, rule)}
-                onDeleteGroup={() => onDeleteGroup(block.id, group.id)}
-                onUpdateRule={(ruleId, changes) =>
-                  onUpdateRule(block.id, group.id, ruleId, changes)
-                }
-                onDeleteRule={(ruleId) => onDeleteRule(block.id, group.id, ruleId)}
-                onCopyRule={(rule) => onCopyRule(block.id, group.id, rule)}
-                onCopyGroup={() => onCopyGroup(block.id, group)}
-                blockId={block.id}
-              />
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 };
