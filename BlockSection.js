@@ -43,8 +43,8 @@ const BlockSection = ({
           marginRight: '8px',
         }}
       >
-        <button onClick={onAddBlock} title="Add Block" style={{ background: 'transparent', border: 'none', fontSize: '18px', cursor: 'pointer' }}>➕</button>
-        <button onClick={onDelete} title="Delete Block" style={{ background: 'transparent', border: 'none', fontSize: '18px', cursor: 'pointer' }}>🗑️</button>
+        <button onClick={onAddBlock} title="Add Block" style={{ background: 'transparent', border: 'none', fontSize: '14px', cursor: 'pointer', width:'max-content'  }}>➕ Add Block</button>
+        <button onClick={onDelete} title="Delete Block" style={{ background: 'transparent', border: 'none', fontSize: '15px', cursor: 'pointer' }}>🗑️</button>
       </div>
 
       <div style={{ width: '100%',
@@ -58,10 +58,9 @@ const BlockSection = ({
           <div onClick={onToggleCollapse} title="Collapse block" style={{
             cursor: 'pointer',
             fontWeight: 'bold',
-            transform: collapsed ? 'rotate(-90deg)' : 'none',
             transition: 'transform 0.2s',
             marginRight: '10px',
-          }}>▶</div>
+          }}>{collapsed? '▶️' : '▼'}</div>
           <span style={{
             fontWeight: 'bold',
             color: isInclude ? '#3399ff' : '#ff4d4d',
@@ -110,7 +109,7 @@ const BlockSection = ({
               <div key={group.id} style={{
                 display: 'flex',
                 alignItems: 'flex-start',
-                marginBottom: '16px',
+                marginBottom: '0px',
               }}>
                 {i > 0 ? (
                   <select
@@ -118,7 +117,7 @@ const BlockSection = ({
                     onChange={(e) => onLogicChange(i, e.target.value)}
                     style={{
                       fontSize: '12px',
-                      padding: '4px 8px',
+                      /*padding: '4px 8px',*/
                       height: '32px',
                       borderRadius: '4px',
                       border: '1px solid #ccc',
@@ -128,15 +127,16 @@ const BlockSection = ({
                   >
                     <option value="AND">AND</option>
                     <option value="OR">OR</option>
-                  </select>) : (<div style={{ width: '80px', marginRight: '10px' }}></div>)
-                )}
+                  </select>) : (<div style={{ width: '58px' /*, marginRight: '10px'*/ }}></div>)
+                }
                 <div style={{ width: '100%', flex: 1 }}>
                   <RuleGroup group={group} onChange={(updated) => onGroupChange(i, updated)} />
                 </div>
 
                 <div style={{ width: '100%',
+                  width:'fit-content',
                   display: 'flex',
-                  flexDirection: group.collapsed ? 'row' : 'column',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   gap: '6px',
                   paddingTop: group.collapsed ? '2px' : '4px',
